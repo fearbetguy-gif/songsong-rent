@@ -1,0 +1,2139 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <title>后台管理</title>
+  <style>
+    :root {
+      --sidebar-bg: oklch(20% 0.04 258);
+      --sidebar-bg-deep: oklch(14% 0.035 258);
+      --sidebar-hover: rgba(255, 255, 255, 0.13);
+      --sidebar-active: oklch(57% 0.21 258);
+      --main-bg: oklch(97.5% 0.006 258);
+      --card-bg: oklch(99.2% 0.004 258);
+      --text-main: oklch(21% 0.018 258);
+      --text-sub: oklch(47% 0.018 258);
+      --line: oklch(92.5% 0.008 258);
+      --primary: oklch(57% 0.21 258);
+      --primary-hover: oklch(63% 0.2 258);
+      --primary-light: oklch(95.5% 0.035 258);
+      --border: oklch(86% 0.012 258);
+      --radius: 8px;
+      --shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      color: var(--text-main);
+      background: var(--main-bg);
+    }
+
+    .layout {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 250px 1fr;
+    }
+
+    .layout.sidebar-collapsed {
+      grid-template-columns: 84px 1fr;
+    }
+
+    .layout.sidebar-collapsed .brand-text,
+    .layout.sidebar-collapsed .sidebar-nav .section-title,
+    .layout.sidebar-collapsed .sidebar-nav .quick-btn {
+      font-size: 0;
+      padding-left: 0;
+      padding-right: 0;
+      text-align: center;
+    }
+
+    .layout.sidebar-collapsed .sidebar-nav .quick-btn::before {
+      content: "•";
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .sidebar-nav {
+      background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-deep) 100%);
+      padding: 18px 14px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: oklch(98% 0.004 258);
+      font-size: 20px;
+      font-weight: 800;
+      margin: 8px 8px 22px;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary);
+      color: oklch(98% 0.004 258);
+      font-size: 15px;
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .brand-text {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .section-title {
+      margin: 0 10px 14px;
+      font-size: 13px;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.58);
+      text-transform: uppercase;
+    }
+
+    .quick-buttons {
+      display: grid;
+      gap: 8px;
+    }
+
+    .quick-btn {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.92);
+      text-align: left;
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .quick-btn:hover {
+      background: var(--sidebar-hover);
+      transform: translateX(2px);
+    }
+
+    .quick-btn.is-active {
+      background: var(--sidebar-active);
+      box-shadow: 0 2px 8px rgba(22, 119, 255, 0.28);
+    }
+
+    .main-area {
+      padding: 18px 22px 26px;
+      overflow-x: auto;
+    }
+
+    .topbar {
+      height: 72px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 0 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex: 1;
+    }
+
+    .menu-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: var(--text-sub);
+      cursor: pointer;
+    }
+
+    .top-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: 0.3px;
+    }
+
+    .logo {
+      font-size: 16px;
+      color: var(--text-sub);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: oklch(98% 0.004 258);
+      box-shadow: 0 2px 0 rgba(5, 145, 255, 0.1);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      background: var(--primary-hover);
+    }
+
+    .btn-light {
+      background: var(--card-bg);
+      border-color: var(--border);
+      color: var(--primary);
+    }
+
+    .btn-light:hover,
+    .mini-btn:hover {
+      border-color: var(--primary-hover);
+      color: var(--primary);
+    }
+
+    .btn:focus-visible,
+    .quick-btn:focus-visible,
+    .mini-btn:focus-visible,
+    .menu-mark:focus-visible,
+    .modal-close:focus-visible {
+      outline: 3px solid rgba(22, 119, 255, 0.2);
+      outline-offset: 2px;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 16px;
+      contain: layout paint;
+      content-visibility: auto;
+      contain-intrinsic-size: 560px;
+    }
+
+    .panel > .section-title {
+      margin: 0 0 16px;
+      color: var(--text-main);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--card-bg);
+      padding: 16px;
+    }
+
+    .stat-label {
+      margin: 0 0 8px;
+      color: var(--text-sub);
+      font-size: 13px;
+    }
+
+    .stat-value {
+      margin: 0;
+      color: var(--primary);
+      font-size: 30px;
+      line-height: 1.1;
+      font-weight: 800;
+    }
+
+    .stat-sub {
+      margin-top: 8px;
+      color: var(--text-sub);
+      font-size: 13px;
+    }
+
+    .stat-time {
+      margin: 10px 0 0;
+      color: var(--text-sub);
+      font-size: 12px;
+    }
+
+    h1, h2 { margin: 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius);
+      overflow: hidden;
+      table-layout: fixed;
+    }
+
+    thead tr {
+      background: #fafafa;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 11px 10px;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      color: var(--text-main);
+      vertical-align: middle;
+      word-break: break-word;
+    }
+
+    tbody tr:hover {
+      background: #fafafa;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .mini-btn {
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text-sub);
+      border-radius: 6px;
+      padding: 5px 9px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-main);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      transition: border-color 0.2s;
+      outline: none;
+      background: var(--card-bg);
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.12);
+    }
+    textarea.form-control {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .checkbox-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid oklch(78% 0.09 258);
+      background: var(--primary-light);
+      border-radius: 4px;
+      padding: 7px 11px;
+      font-size: 13px;
+      color: oklch(42% 0.16 258);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-chip input {
+      margin: 0;
+    }
+
+    .label-empty {
+      color: var(--text-sub);
+      font-size: 13px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-container {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--line);
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-close {
+      cursor: pointer;
+      color: var(--text-sub);
+      font-size: 20px;
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--text-main); }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+      padding: 16px 24px;
+      background: #fafafa;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .form-grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .form-panel {
+      max-width: 680px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .form-actions {
+      margin-top: 24px;
+    }
+
+    .filter-row {
+      margin: 0 0 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      align-items: center;
+    }
+
+    .control {
+      width: 100%;
+      min-height: 36px;
+      padding: 7px 11px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card-bg);
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .control:focus {
+      border-color: var(--primary-hover);
+      box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.12);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+
+    @media (max-width: 1080px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar-nav {
+        height: auto;
+        position: static;
+      }
+      .brand {
+        margin-bottom: 10px;
+      }
+      .quick-buttons {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      }
+      .quick-btn {
+        text-align: center;
+      }
+      .topbar {
+        height: auto;
+        min-height: 72px;
+        flex-wrap: wrap;
+        padding: 14px;
+      }
+      .logo {
+        order: 3;
+        width: 100%;
+      }
+      .form-grid.two,
+      .form-row {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <aside class="sidebar-nav">
+    <div class="brand">
+      <span class="brand-mark">租</span>
+      <span class="brand-text">租房管理系统</span>
+    </div>
+    <h2 class="section-title">功能菜单</h2>
+    <div class="quick-buttons">
+      <button class="quick-btn" type="button" id="btn-dashboard" onclick="showPanel('dashboard')">监控概览</button>
+      <button class="quick-btn" type="button" id="btn-add-house" onclick="showPanel('addHouse')">新增房源</button>
+      <button class="quick-btn" type="button" id="btn-manage-house" onclick="showPanel('manageHouse')">管理房源</button>
+      <button class="quick-btn" type="button" id="btn-city" onclick="showPanel('cityDistrict')">城市区域管理</button>
+      <button class="quick-btn" type="button" id="btn-district" style="display: none;">区域管理</button>
+      <button class="quick-btn" type="button" id="btn-label" onclick="showPanel('label')">标签管理</button>
+      <button class="quick-btn" type="button" id="btn-image" onclick="showPanel('image')">图片管理</button>
+      <button class="quick-btn" type="button" id="btn-user" onclick="showPanel('user')">用户管理</button>
+      <button class="quick-btn" type="button" id="btn-audit" onclick="showPanel('audit')">审核记录</button>
+      <button class="quick-btn" type="button" id="btn-appointment" onclick="showPanel('appointment')">预约管理</button>
+    </div>
+  </aside>
+
+  <main class="main-area">
+    <header class="topbar">
+      <div class="top-left">
+        <span class="menu-mark" id="btn-toggle-sidebar">☰</span>
+        <span class="top-title">后台工作台</span>
+      </div>
+      <div class="logo">松松租房平台 · 后台管理</div>
+      <div class="top-actions">
+        <button class="btn btn-light" type="button" onclick="goHome()">返回首页</button>
+        <button class="btn btn-primary" type="button" onclick="logoutAdmin()">退出登录</button>
+      </div>
+    </header>
+
+  <section class="panel" id="panel-dashboard">
+    <h2 class="section-title">实时监控概览</h2>
+    <div class="dashboard-grid">
+      <article class="stat-card">
+        <p class="stat-label">在线房源总数</p>
+        <p class="stat-value" id="stat-house-count">-</p>
+        <p class="stat-sub">当前可展示房源规模</p>
+      </article>
+      <article class="stat-card">
+        <p class="stat-label">注册用户总数</p>
+        <p class="stat-value" id="stat-user-count">-</p>
+        <p class="stat-sub">平台租客/房东账号总量</p>
+      </article>
+      <article class="stat-card">
+        <p class="stat-label">预约待处理数</p>
+        <p class="stat-value" id="stat-pending-appointment">-</p>
+        <p class="stat-sub">状态=待确认的预约申请</p>
+      </article>
+      <article class="stat-card">
+        <p class="stat-label">平均租金</p>
+        <p class="stat-value" id="stat-avg-rent">-</p>
+        <p class="stat-sub">按平台房源统计</p>
+      </article>
+      <article class="stat-card">
+        <p class="stat-label">城市数量</p>
+        <p class="stat-value" id="stat-city-count">-</p>
+        <p class="stat-sub">已维护城市基础数据</p>
+      </article>
+      <article class="stat-card">
+        <p class="stat-label">区域数量</p>
+        <p class="stat-value" id="stat-district-count">-</p>
+        <p class="stat-sub">已维护区域基础数据</p>
+      </article>
+    </div>
+    <p class="stat-time" id="stat-refresh-time">最近刷新：-</p>
+  </section>
+
+  <section class="panel" id="panel-add-house" style="display: none;">
+    <h2 class="section-title">新增房源</h2>
+    <div class="form-panel">
+      <div class="form-group">
+        <label>标题</label>
+        <input id="add-title" class="form-control" placeholder="例如：合租·温馨次卧" />
+      </div>
+      <div class="form-group">
+        <label>租金 (元/月)</label>
+        <input id="add-rentPrice" class="form-control" placeholder="例如：2500" type="number" step="0.01" />
+      </div>
+      <div class="form-group">
+        <label>城市和区域</label>
+        <div class="form-row">
+          <select id="add-city-select" class="form-control" onchange="loadAddHouseDistrictOptions()">
+            <option value="">请选择城市</option>
+          </select>
+          <select id="add-district-select" class="form-control">
+            <option value="">请选择区域</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>经纬度 (可选，用于地图找房)</label>
+        <div class="form-row">
+          <input id="add-longitude" class="form-control" placeholder="经度 (例: 116.40)" type="number" step="0.000001" />
+          <input id="add-latitude" class="form-control" placeholder="纬度 (例: 39.90)" type="number" step="0.000001" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>房源描述</label>
+        <textarea id="add-description" class="form-control" placeholder="请输入房源详细描述..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>房源标签</label>
+        <div id="add-label-checkboxes" class="checkbox-group">
+          <span class="label-empty">标签加载中...</span>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" type="button" id="btn-submit-add" onclick="addHouse()">提交新增</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-manage-house">
+    <h2 class="section-title">房源管理</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>标题</th>
+          <th>城市</th>
+          <th>区域</th>
+          <th>价格</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="house-table-body"></tbody>
+    </table>
+  </section>
+
+  <section class="panel" id="panel-city" style="display: none;">
+    <h2 class="section-title">城市区域管理</h2>
+    <div class="filter-row">
+      <input id="city-name" class="control" placeholder="城市名称" />
+      <button class="btn btn-primary" type="button" id="btn-city-add" onclick="addCity()">新增城市</button>
+      <input id="district-city-id" class="control" placeholder="城市ID" type="number" />
+      <input id="district-name" class="control" placeholder="区域名称" />
+      <button class="btn btn-primary" type="button" id="btn-district-add" onclick="addDistrict()">新增区域</button>
+    </div>
+    <table>
+      <thead><tr><th>ID</th><th>城市</th><th>操作</th></tr></thead>
+      <tbody id="city-table-body"></tbody>
+    </table>
+    <table>
+      <thead><tr><th>ID</th><th>城市ID</th><th>区域</th><th>操作</th></tr></thead>
+      <tbody id="district-table-body"></tbody>
+    </table>
+  </section>
+
+  <section class="panel" id="panel-label" style="display: none;">
+    <h2 class="section-title">标签管理</h2>
+    <div class="filter-row">
+      <input id="label-name" class="control" placeholder="标签名称" />
+      <input id="label-sort" class="control" placeholder="排序" type="number" />
+      <button class="btn btn-primary" type="button" id="btn-label-add" onclick="addLabel()">新增标签</button>
+    </div>
+    <table>
+      <thead><tr><th>ID</th><th>标签</th><th>排序</th><th>操作</th></tr></thead>
+      <tbody id="label-table-body"></tbody>
+    </table>
+    <div class="filter-row">
+      <select id="house-label-house-id" class="control" onfocus="loadHouseOptionsForLabelBind()">
+        <option value="">请选择房源</option>
+      </select>
+      <select id="house-label-select" class="control" onfocus="loadLabelOptionsForBind()">
+        <option value="">请选择标签</option>
+      </select>
+      <button class="btn btn-primary" type="button" onclick="bindHouseLabel()">绑定标签</button>
+      <button class="btn btn-light" type="button" onclick="loadHouseLabelRelations()">查看关联</button>
+    </div>
+    <table>
+      <thead><tr><th>关联ID</th><th>房源ID</th><th>标签ID</th><th>操作</th></tr></thead>
+      <tbody id="house-label-relation-body"></tbody>
+    </table>
+  </section>
+
+  <section class="panel" id="panel-image" style="display: none;">
+    <h2 class="section-title">图片管理</h2>
+    <div class="filter-row">
+      <select id="image-house-id" class="control" onfocus="loadHouseOptionsForImageBind()">
+        <option value="">请选择房源</option>
+      </select>
+      <input id="image-file" class="control" type="file" accept="image/*" />
+      <button class="btn btn-light" type="button" onclick="uploadImageFile()">上传图片</button>
+      <input id="image-url" class="control" placeholder="图片URL" />
+      <input id="image-sort" class="control" placeholder="排序" type="number" />
+      <input id="image-cover" class="control" placeholder="封面(0/1)" type="number" value="1" />
+      <button class="btn btn-primary" type="button" id="btn-image-add" onclick="addImage()">新增图片</button>
+    </div>
+    <table>
+      <thead><tr><th>ID</th><th>房源ID</th><th>图片</th><th>排序</th><th>封面</th><th>操作</th></tr></thead>
+      <tbody id="image-table-body"></tbody>
+    </table>
+  </section>
+
+  <section class="panel" id="panel-user" style="display: none;">
+    <h2 class="section-title">用户管理</h2>
+    <table>
+      <thead><tr><th>ID</th><th>用户名</th><th>昵称</th><th>管理员</th><th>创建时间</th><th>操作</th></tr></thead>
+      <tbody id="user-table-body"></tbody>
+    </table>
+  </section>
+
+  <section class="panel" id="panel-audit" style="display: none;">
+    <h2 class="section-title">审核记录</h2>
+    <div class="filter-row">
+      <select id="audit-house-select" class="control" onfocus="loadHouseOptionsForAudit()">
+        <option value="">请选择房源</option>
+      </select>
+      <select id="audit-from-status" class="control">
+        <option value="">变更前状态(可空)</option>
+        <option value="0">待审</option>
+        <option value="1">通过</option>
+        <option value="2">驳回</option>
+      </select>
+      <select id="audit-to-status" class="control">
+        <option value="">变更后状态</option>
+        <option value="0">待审</option>
+        <option value="1">通过</option>
+        <option value="2">驳回</option>
+      </select>
+      <input id="audit-operator-id" class="control" placeholder="操作人ID" type="number" />
+      <input id="audit-remark" class="control" placeholder="备注" />
+      <button class="btn btn-primary" type="button" onclick="addAuditLog()">新增记录</button>
+      <button class="btn btn-light" type="button" onclick="loadAuditLogs()">按房源筛选</button>
+    </div>
+    <table>
+      <thead><tr><th>ID</th><th>房源ID</th><th>前状态</th><th>后状态</th><th>操作人</th><th>备注</th><th>时间</th><th>操作</th></tr></thead>
+      <tbody id="audit-table-body"></tbody>
+    </table>
+  </section>
+
+  <section class="panel" id="panel-appointment" style="display: none;">
+    <h2 class="section-title">预约管理</h2>
+    <div class="filter-row">
+      <select id="appointment-status" class="control">
+        <option value="">全部状态</option>
+        <option value="0">待确认</option>
+        <option value="1">已确认</option>
+        <option value="2">已拒绝</option>
+        <option value="3">已完成</option>
+        <option value="4">已取消</option>
+      </select>
+      <input id="appointment-house-id" class="control" placeholder="房源ID(可空)" type="number" />
+      <button class="btn btn-light" type="button" onclick="loadAppointments()">查询</button>
+    </div>
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>房源</th>
+        <th>用户</th>
+        <th>看房人</th>
+        <th>手机</th>
+        <th>预约时间</th>
+        <th>状态</th>
+        <th>拒绝原因</th>
+        <th>操作</th>
+      </tr>
+      </thead>
+      <tbody id="appointment-table-body"></tbody>
+    </table>
+  </section>
+  </main>
+</div>
+
+<!-- 编辑房源模态框 -->
+<div class="modal-overlay" id="edit-house-modal" style="display: none;">
+  <div class="modal-container">
+    <div class="modal-header">
+      <span>编辑房源</span>
+      <span class="modal-close" onclick="closeEditHouseModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-house-id" />
+      <div class="form-group">
+        <label>标题</label>
+        <input id="edit-title" class="form-control" placeholder="请输入标题" />
+      </div>
+      <div class="form-group">
+        <label>租金 (元/月)</label>
+        <input id="edit-rentPrice" class="form-control" type="number" step="0.01" placeholder="例如：2500" />
+      </div>
+      <div class="form-group">
+        <label>经纬度</label>
+        <div class="form-row">
+          <input id="edit-longitude" class="form-control" placeholder="经度 (例: 116.40)" type="number" step="0.000001" />
+          <input id="edit-latitude" class="form-control" placeholder="纬度 (例: 39.90)" type="number" step="0.000001" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>房源描述</label>
+        <textarea id="edit-description" class="form-control" placeholder="请输入房源详细描述..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>房源标签</label>
+        <div id="edit-label-checkboxes" class="checkbox-group">
+          <span class="label-empty">标签加载中...</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-light" type="button" onclick="closeEditHouseModal()">取消</button>
+      <button class="btn btn-primary" type="button" onclick="submitEditHouse()">保存更改</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const baseUrl = "http://localhost:8080";
+  const adminUserId = localStorage.getItem("adminUserId") || localStorage.getItem("userId");
+  const isAdmin = localStorage.getItem("isAdmin");
+
+  if (isAdmin !== "1" || !adminUserId) {
+    alert("该账号无后台管理权限");
+    window.location.href = "/admin-login";
+  }
+
+  const nativeFetch = window.fetch.bind(window);
+  window.fetch = (input, init = {}) => {
+    const url = typeof input === "string" ? input : (input && input.url) || "";
+    if (!url.startsWith(baseUrl)) {
+      return nativeFetch(input, init);
+    }
+    const headers = new Headers(init.headers || {});
+    const token = localStorage.getItem("token");
+    if (token) {
+      headers.set("Authorization", "Bearer " + token);
+    }
+    headers.set("X-Admin-UserId", adminUserId); // 兼容旧逻辑
+    return nativeFetch(input, { ...init, headers });
+  };
+
+  function goHome() {
+    window.location.href = "/";
+  }
+
+  function logoutAdmin() {
+    localStorage.removeItem("adminUserId");
+    localStorage.removeItem("isAdmin");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("username");
+    localStorage.removeItem("nickname");
+    localStorage.removeItem("token");
+    window.location.href = "/admin-login";
+  }
+
+  const panelAddHouse = document.getElementById("panel-add-house");
+  const panelManageHouse = document.getElementById("panel-manage-house");
+  const panelCity = document.getElementById("panel-city");
+  const panelLabel = document.getElementById("panel-label");
+  const panelImage = document.getElementById("panel-image");
+  const panelUser = document.getElementById("panel-user");
+  const panelAudit = document.getElementById("panel-audit");
+  const panelAppointment = document.getElementById("panel-appointment");
+  const panelDashboard = document.getElementById("panel-dashboard");
+  let dashboardTimer = null;
+  let dashboardLoading = false;
+  const dataCache = new Map();
+  const dataCacheTtl = 30000;
+  const panelButtonMap = {
+    dashboard: "btn-dashboard",
+    addHouse: "btn-add-house",
+    manageHouse: "btn-manage-house",
+    cityDistrict: "btn-city",
+    label: "btn-label",
+    image: "btn-image",
+    user: "btn-user",
+    audit: "btn-audit",
+    appointment: "btn-appointment",
+  };
+
+  function setActiveMenu(type) {
+    const buttons = document.querySelectorAll(".quick-btn");
+    buttons.forEach((btn) => btn.classList.remove("is-active"));
+    const btnId = panelButtonMap[type];
+    if (!btnId) return;
+    const btn = document.getElementById(btnId);
+    if (btn) btn.classList.add("is-active");
+  }
+
+  function hideAllPanels() {
+    stopDashboardMonitor();
+    panelDashboard.style.display = "none";
+    panelAddHouse.style.display = "none";
+    panelManageHouse.style.display = "none";
+    panelCity.style.display = "none";
+    panelLabel.style.display = "none";
+    panelImage.style.display = "none";
+    panelUser.style.display = "none";
+    panelAudit.style.display = "none";
+    panelAppointment.style.display = "none";
+  }
+
+  function showPanel(type) {
+    hideAllPanels();
+    setActiveMenu(type);
+    if (type === "dashboard") {
+      panelDashboard.style.display = "block";
+      startDashboardMonitor();
+      return;
+    }
+    if (type === "addHouse") {
+      panelAddHouse.style.display = "block";
+      loadAddHouseCityOptions();
+      loadAddHouseLabelOptions();
+      return;
+    }
+    if (type === "manageHouse") {
+      panelManageHouse.style.display = "block";
+      loadHouses();
+      return;
+    }
+    if (type === "cityDistrict") {
+      panelCity.style.display = "block";
+      loadCities();
+      loadDistricts();
+      return;
+    }
+    if (type === "label") {
+      panelLabel.style.display = "block";
+      loadLabels();
+      loadLabelOptionsForBind();
+      loadHouseOptionsForLabelBind();
+      return;
+    }
+    if (type === "image") {
+      panelImage.style.display = "block";
+      loadHouseOptionsForImageBind();
+      loadImages();
+      return;
+    }
+    if (type === "user") {
+      panelUser.style.display = "block";
+      loadUsers();
+      return;
+    }
+    if (type === "audit") {
+      panelAudit.style.display = "block";
+      loadHouseOptionsForAudit();
+      loadAuditLogs();
+      return;
+    }
+    if (type === "appointment") {
+      panelAppointment.style.display = "block";
+      loadAppointments();
+      return;
+    }
+  }
+
+  function formatNumber(value) {
+    if (value == null || value === "") return "-";
+    const num = Number(value);
+    if (Number.isNaN(num)) return "-";
+    return num.toLocaleString("zh-CN");
+  }
+
+  function formatMoney(value) {
+    if (value == null || value === "") return "-";
+    const num = Number(value);
+    if (Number.isNaN(num)) return "-";
+    return "￥" + num.toFixed(2);
+  }
+
+  async function fetchJsonCached(key, url, ttl = dataCacheTtl) {
+    const cached = dataCache.get(key);
+    const now = Date.now();
+    if (cached && now - cached.time < ttl) {
+      return cached.value;
+    }
+    const res = await fetch(url);
+    const value = await res.json();
+    dataCache.set(key, { time: now, value });
+    return value;
+  }
+
+  function invalidateCache(prefix) {
+    Array.from(dataCache.keys()).forEach((key) => {
+      if (key.startsWith(prefix)) dataCache.delete(key);
+    });
+  }
+
+  async function loadDashboardStats() {
+    if (dashboardLoading || document.hidden) return;
+    dashboardLoading = true;
+    try {
+      const [statsRes, usersRes, pendingApptRes] = await Promise.all([
+        fetch(baseUrl + "/house/stats"),
+        fetch(baseUrl + "/user/list"),
+        fetch(baseUrl + "/appointment-admin/list?status=0&pageNum=1&pageSize=1"),
+      ]);
+      const statsJson = await statsRes.json();
+      const usersJson = await usersRes.json();
+      const pendingApptJson = await pendingApptRes.json();
+
+      const statData = statsJson.code === 200 ? (statsJson.data || {}) : {};
+      const userCount = usersJson.code === 200 ? ((usersJson.data || []).length) : 0;
+      const pendingCount = pendingApptJson.code === 200 ? (pendingApptJson?.data?.total || 0) : 0;
+
+      document.getElementById("stat-house-count").textContent = formatNumber(statData.houseCount || 0);
+      document.getElementById("stat-user-count").textContent = formatNumber(userCount);
+      document.getElementById("stat-pending-appointment").textContent = formatNumber(pendingCount);
+      document.getElementById("stat-avg-rent").textContent = formatMoney(statData.avgRentPrice || 0);
+      document.getElementById("stat-city-count").textContent = formatNumber(statData.cityCount || 0);
+      document.getElementById("stat-district-count").textContent = formatNumber(statData.districtCount || 0);
+      document.getElementById("stat-refresh-time").textContent =
+        "最近刷新：" + new Date().toLocaleString("zh-CN", { hour12: false });
+    } catch (e) {
+      document.getElementById("stat-refresh-time").textContent = "最近刷新：失败，请检查网络或登录状态";
+    } finally {
+      dashboardLoading = false;
+    }
+  }
+
+  function startDashboardMonitor() {
+    stopDashboardMonitor();
+    loadDashboardStats();
+    dashboardTimer = setInterval(loadDashboardStats, 30000);
+  }
+
+  function stopDashboardMonitor() {
+    if (dashboardTimer) {
+      clearInterval(dashboardTimer);
+      dashboardTimer = null;
+    }
+  }
+
+  function appointmentStatusText(value) {
+    const map = {
+      0: "待确认",
+      1: "已确认",
+      2: "已拒绝",
+      3: "已完成",
+      4: "已取消",
+    };
+    return map[value] || "-";
+  }
+
+  function formatDateTime(value) {
+    if (!value) return "-";
+    if (Array.isArray(value)) {
+      const [y, m, d, hh = 0, mm = 0] = value;
+      return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")} ${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+    }
+    return String(value).replace("T", " ").slice(0, 16);
+  }
+
+  async function loadAppointments() {
+    const status = document.getElementById("appointment-status").value;
+    const houseId = document.getElementById("appointment-house-id").value.trim();
+    const qs = new URLSearchParams();
+    if (status !== "") qs.set("status", status);
+    if (houseId) qs.set("houseId", houseId);
+    qs.set("pageNum", "1");
+    qs.set("pageSize", "50");
+    const res = await fetch(baseUrl + "/appointment-admin/list?" + qs.toString());
+    const result = await res.json();
+    if (result.code !== 200) {
+      alert(result.message || "加载预约失败");
+      return;
+    }
+    const tbody = document.getElementById("appointment-table-body");
+    const records = result.data?.records || [];
+    tbody.innerHTML = records
+      .map((item) => {
+        const statusText = appointmentStatusText(item.status);
+        const actions = [];
+        if (item.status === 0) {
+          actions.push(`<button class="mini-btn" onclick="confirmAppointment(${item.id})">确认</button>`);
+          actions.push(`<button class="mini-btn" onclick="rejectAppointment(${item.id})">拒绝</button>`);
+        }
+        if (item.status === 1) {
+          actions.push(`<button class="mini-btn" onclick="finishAppointment(${item.id})">完成</button>`);
+        }
+        return `
+          <tr>
+            <td>${item.id}</td>
+            <td>${item.houseTitle || ("#" + item.houseId)}</td>
+            <td>${item.nickname || item.username || ("#" + item.userId)}</td>
+            <td>${item.viewerName || "-"}</td>
+            <td>${item.phone || "-"}</td>
+            <td>${formatDateTime(item.appointmentTime)}</td>
+            <td>${statusText}</td>
+            <td>${item.rejectReason || ""}</td>
+            <td><div class="row-actions">${actions.join("") || "-"}</div></td>
+          </tr>
+        `;
+      })
+      .join("");
+  }
+
+  async function confirmAppointment(id) {
+    if (!confirm("确认该预约？")) return;
+    const res = await fetch(baseUrl + "/appointment-admin/confirm/" + id, { method: "POST" });
+    const result = await res.json();
+    if (result.code === 200) {
+      loadAppointments();
+    } else {
+      alert(result.message || "操作失败");
+    }
+  }
+
+  async function rejectAppointment(id) {
+    const reason = prompt("请输入拒绝原因：", "");
+    if (!reason) return;
+    const res = await fetch(baseUrl + "/appointment-admin/reject/" + id, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason }),
+    });
+    const result = await res.json();
+    if (result.code === 200) {
+      loadAppointments();
+    } else {
+      alert(result.message || "操作失败");
+    }
+  }
+
+  async function finishAppointment(id) {
+    if (!confirm("标记为已完成？")) return;
+    const res = await fetch(baseUrl + "/appointment-admin/finish/" + id, { method: "POST" });
+    const result = await res.json();
+    if (result.code === 200) {
+      loadAppointments();
+    } else {
+      alert(result.message || "操作失败");
+    }
+  }
+
+  async function addHouse() {
+    const title = document.getElementById("add-title").value.trim();
+    const rentPrice = document.getElementById("add-rentPrice").value.trim();
+    const district = document.getElementById("add-district-select").value;
+    const description = document.getElementById("add-description").value.trim();
+    const longitude = document.getElementById("add-longitude").value.trim();
+    const latitude = document.getElementById("add-latitude").value.trim();
+    const labelIds = getCheckedLabelIds("add-label-checkboxes");
+
+    if (!title || !rentPrice || !district) {
+      alert("请填写完整标题、租金和区域");
+      return;
+    }
+    const res = await fetch(baseUrl + "/house/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title,
+        rentPrice: Number(rentPrice),
+        district: Number(district),
+        description,
+        longitude: longitude ? Number(longitude) : null,
+        latitude: latitude ? Number(latitude) : null,
+        labelIds
+      })
+    });
+    const result = await res.json();
+    if (result.code === 200) {
+      invalidateCache("houses:");
+      alert("新增成功");
+      document.getElementById("add-title").value = "";
+      document.getElementById("add-rentPrice").value = "";
+      document.getElementById("add-description").value = "";
+      document.getElementById("add-longitude").value = "";
+      document.getElementById("add-latitude").value = "";
+      clearCheckedLabels("add-label-checkboxes");
+      showPanel("manageHouse");
+    } else {
+      alert(result.message || "新增失败");
+    }
+  }
+
+  async function addCity() {
+    try {
+      const name = document.getElementById("city-name").value.trim();
+      if (!name) return alert("请输入城市名称");
+      const res = await fetch(baseUrl + "/city/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name })
+      });
+      const result = await res.json();
+      if (result.code === 200) {
+        invalidateCache("cities:");
+        document.getElementById("city-name").value = "";
+        loadCities();
+      } else {
+        alert(result.message || "新增城市失败");
+      }
+    } catch (e) {
+      alert("新增城市失败");
+    }
+  }
+
+  async function loadCities() {
+    const res = await fetch(baseUrl + "/city/list");
+    const result = await res.json();
+    const list = result.data || [];
+    const tbody = document.getElementById("city-table-body");
+    tbody.innerHTML = "";
+    list.forEach((item) => {
+      const tr = document.createElement("tr");
+      const safeName = String(item.name ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+      tr.innerHTML = `
+        <td>${item.id}</td>
+        <td>${item.name}</td>
+        <td>
+          <button class="mini-btn" type="button" onclick="editCity(${item.id}, '${safeName}')">编辑</button>
+          <button class="mini-btn" type="button" onclick="deleteCity(${item.id})">删除</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function deleteCity(id) {
+    await fetch(baseUrl + "/city/" + id, { method: "DELETE" });
+    invalidateCache("cities:");
+    invalidateCache("districts:");
+    loadCities();
+  }
+
+  async function editCity(id, name) {
+    const newName = prompt("请输入新城市名称", name || "");
+    if (newName === null) return;
+    const nameValue = newName.trim();
+    if (!nameValue) return alert("城市名称不能为空");
+    const res = await fetch(baseUrl + "/city/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: Number(id), name: nameValue })
+    });
+    const result = await res.json();
+    if (result.code === 200) {
+      invalidateCache("cities:");
+      loadCities();
+      loadAddHouseCityOptions();
+    } else {
+      alert(result.message || "编辑城市失败");
+    }
+  }
+
+  async function addDistrict() {
+    try {
+      const cityId = document.getElementById("district-city-id").value.trim();
+      const name = document.getElementById("district-name").value.trim();
+      if (!cityId || !name) return alert("请填写完整");
+      const res = await fetch(baseUrl + "/district/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cityId: Number(cityId), name })
+      });
+      const result = await res.json();
+      if (result.code === 200) {
+        invalidateCache("districts:");
+        document.getElementById("district-city-id").value = "";
+        document.getElementById("district-name").value = "";
+        loadDistricts();
+      } else {
+        alert(result.message || "新增区域失败");
+      }
+    } catch (e) {
+      alert("新增区域失败");
+    }
+  }
+
+  async function loadDistricts() {
+    const res = await fetch(baseUrl + "/district/list");
+    const result = await res.json();
+    const list = result.data || [];
+    const tbody = document.getElementById("district-table-body");
+    tbody.innerHTML = "";
+    list.forEach((item) => {
+      const tr = document.createElement("tr");
+      const safeName = String(item.name ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+      tr.innerHTML = `
+        <td>${item.id}</td>
+        <td>${item.cityId}</td>
+        <td>${item.name}</td>
+        <td>
+          <button class="mini-btn" type="button" onclick="editDistrict(${item.id}, ${item.cityId}, '${safeName}')">编辑</button>
+          <button class="mini-btn" type="button" onclick="deleteDistrict(${item.id})">删除</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function deleteDistrict(id) {
+    await fetch(baseUrl + "/district/" + id, { method: "DELETE" });
+    invalidateCache("districts:");
+    loadDistricts();
+  }
+
+  async function editDistrict(id, cityId, name) {
+    const newCityId = prompt("请输入所属城市ID", String(cityId || ""));
+    if (newCityId === null) return;
+    const cityIdValue = Number(String(newCityId).trim());
+    if (!Number.isFinite(cityIdValue) || cityIdValue <= 0) return alert("城市ID不正确");
+
+    const newName = prompt("请输入新区域名称", name || "");
+    if (newName === null) return;
+    const nameValue = newName.trim();
+    if (!nameValue) return alert("区域名称不能为空");
+
+    const res = await fetch(baseUrl + "/district/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: Number(id), cityId: cityIdValue, name: nameValue })
+    });
+    const result = await res.json();
+    if (result.code === 200) {
+      invalidateCache("districts:");
+      loadDistricts();
+      loadAddHouseDistrictOptions();
+    } else {
+      alert(result.message || "编辑区域失败");
+    }
+  }
+
+  async function addLabel() {
+    const name = document.getElementById("label-name").value.trim();
+    const sortNum = document.getElementById("label-sort").value.trim();
+    if (!name) return alert("请输入标签名称");
+    const res = await fetch(baseUrl + "/label/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, sortNum: sortNum ? Number(sortNum) : 0 })
+    });
+    const result = await res.json();
+    if (result.code === 200) {
+      invalidateCache("labels:");
+      document.getElementById("label-name").value = "";
+      document.getElementById("label-sort").value = "";
+      loadLabels();
+      loadLabelOptionsForBind();
+    } else {
+      alert(result.message || "新增标签失败");
+    }
+  }
+
+  async function loadLabels() {
+    const res = await fetch(baseUrl + "/label/list");
+    const result = await res.json();
+    const list = result.data || [];
+    const tbody = document.getElementById("label-table-body");
+    tbody.innerHTML = "";
+    list.forEach((item) => {
+      const tr = document.createElement("tr");
+      const safeName = String(item.name ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+      tr.innerHTML = `
+        <td>${item.id}</td>
+        <td>${item.name}</td>
+        <td>${item.sortNum ?? 0}</td>
+        <td>
+          <button class="mini-btn" type="button" onclick="editLabel(${item.id}, '${safeName}', ${item.sortNum ?? 0})">编辑</button>
+          <button class="mini-btn" type="button" onclick="deleteLabel(${item.id})">删除</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function deleteLabel(id) {
+    await fetch(baseUrl + "/label/" + id, { method: "DELETE" });
+    invalidateCache("labels:");
+    loadLabels();
+    loadLabelOptionsForBind();
+  }
+
+  async function editLabel(id, name, sortNum) {
+    const newName = prompt("请输入新标签名称", name || "");
+    if (newName === null) return;
+    const nameValue = newName.trim();
+    if (!nameValue) return alert("标签名称不能为空");
+
+    const newSortNum = prompt("请输入新排序", String(sortNum ?? 0));
+    if (newSortNum === null) return;
+    const sortNumValue = Number(String(newSortNum).trim());
+    if (!Number.isFinite(sortNumValue)) return alert("排序格式不正确");
+
+    const res = await fetch(baseUrl + "/label/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: Number(id), name: nameValue, sortNum: sortNumValue })
+    });
+    const result = await res.json();
+    if (result.code === 200) {
+      invalidateCache("labels:");
+      loadLabels();
+      loadLabelOptionsForBind();
+    } else {
+      alert(result.message || "编辑标签失败");
+    }
+  }
+
+  async function loadAddHouseCityOptions() {
+    const result = await fetchJsonCached("cities:list", baseUrl + "/city/list");
+    const list = result.data || [];
+    const citySelect = document.getElementById("add-city-select");
+    citySelect.innerHTML = '<option value="">请选择城市</option>';
+    list.forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item.id;
+      option.textContent = item.name;
+      citySelect.appendChild(option);
+    });
+    document.getElementById("add-district-select").innerHTML = '<option value="">请选择区域</option>';
+  }
+
+  async function loadAddHouseDistrictOptions() {
+    const cityId = document.getElementById("add-city-select").value;
+    const districtSelect = document.getElementById("add-district-select");
+    districtSelect.innerHTML = '<option value="">请选择区域</option>';
+    if (!cityId) return;
+    const result = await fetchJsonCached("districts:city:" + cityId, baseUrl + "/district/list?cityId=" + cityId);
+    const list = result.data || [];
+    list.forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item.id;
+      option.textContent = item.name;
+      districtSelect.appendChild(option);
+    });
+  }
+
+  function getCheckedLabelIds(containerId) {
+    return Array.from(document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`))
+      .map((input) => Number(input.value))
+      .filter((value) => Number.isFinite(value) && value > 0);
+  }
+
+  function clearCheckedLabels(containerId) {
+    document.querySelectorAll(`#${containerId} input[type="checkbox"]`).forEach((input) => {
+      input.checked = false;
+    });
+  }
+
+  async function renderLabelCheckboxes(containerId, checkedIds = []) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '<span class="label-empty">标签加载中...</span>';
+
+    const result = await fetchJsonCached("labels:list", baseUrl + "/label/list");
+    if (result.code !== 200) {
+      container.innerHTML = '<span class="label-empty">标签加载失败</span>';
+      return;
+    }
+
+    const labels = result.data || [];
+    if (labels.length === 0) {
+      container.innerHTML = '<span class="label-empty">暂无可选标签，请先在标签管理中添加</span>';
+      return;
+    }
+
+    const checkedSet = new Set(checkedIds.map((id) => Number(id)));
+    container.innerHTML = labels.map((label) => {
+      const checked = checkedSet.has(Number(label.id)) ? "checked" : "";
+      return `
+        <label class="checkbox-chip">
+          <input type="checkbox" value="${label.id}" ${checked} />
+          ${label.name || ("标签#" + label.id)}
+        </label>
+      `;
+    }).join("");
+  }
+
+  function loadAddHouseLabelOptions() {
+    return renderLabelCheckboxes("add-label-checkboxes");
+  }
+
+  function loadEditHouseLabelOptions(checkedIds = []) {
+    return renderLabelCheckboxes("edit-label-checkboxes", checkedIds);
+  }
+
+  async function loadCheckedLabelIdsForHouse(houseId) {
+    const res = await fetch(baseUrl + "/house-label/list?houseId=" + Number(houseId));
+    const result = await res.json();
+    if (result.code !== 200) {
+      alert(result.message || "加载房源标签失败");
+      return [];
+    }
+    return (result.data || [])
+      .map((item) => Number(item.labelId))
+      .filter((labelId) => Number.isFinite(labelId) && labelId > 0);
+  }
+
+  async function syncHouseLabelRelations(houseId, nextLabelIds) {
+    const res = await fetch(baseUrl + "/house-label/list?houseId=" + Number(houseId));
+    const result = await res.json();
+    if (result.code !== 200) {
+      throw new Error(result.message || "读取房源标签失败");
+    }
+
+    const currentRelations = result.data || [];
+    const nextSet = new Set(nextLabelIds.map((id) => Number(id)));
+    const currentSet = new Set(
+      currentRelations
+        .map((item) => Number(item.labelId))
+        .filter((labelId) => Number.isFinite(labelId) && labelId > 0)
+    );
+
+    for (const relation of currentRelations) {
+      const labelId = Number(relation.labelId);
+      if (!nextSet.has(labelId)) {
+        const deleteRes = await fetch(baseUrl + "/house-label/" + relation.id, { method: "DELETE" });
+        const deleteResult = await deleteRes.json();
+        if (deleteResult.code !== 200) {
+          throw new Error(deleteResult.message || "删除房源标签失败");
+        }
+      }
+    }
+
+    for (const labelId of nextSet) {
+      if (!currentSet.has(labelId)) {
+        const addRes = await fetch(baseUrl + "/house-label/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ houseId: Number(houseId), labelId })
+        });
+        const addResult = await addRes.json();
+        if (addResult.code !== 200) {
+          throw new Error(addResult.message || "新增房源标签失败");
+        }
+      }
+    }
+  }
+
+  async function loadLabelOptionsForBind() {
+    const result = await fetchJsonCached("labels:list", baseUrl + "/label/list");
+    if (result.code !== 200) {
+      alert(result.message || "加载标签下拉失败");
+      return;
+    }
+    const list = result.data || [];
+    const select = document.getElementById("house-label-select");
+    const currentValue = select.value;
+    select.innerHTML = '<option value="">请选择标签</option>';
+    list.forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item.id;
+      option.textContent = item.name;
+      select.appendChild(option);
+    });
+    if (currentValue && list.some((item) => String(item.id) === String(currentValue))) {
+      select.value = String(currentValue);
+    }
+  }
+
+  async function loadHouseOptionsForLabelBind() {
+    const result = await fetchJsonCached("houses:options", baseUrl + "/house/list?pageNum=1&pageSize=200", 15000);
+    if (result.code !== 200) {
+      alert(result.message || "加载房源下拉失败");
+      return;
+    }
+    const records = (result.data && result.data.records) || [];
+    const select = document.getElementById("house-label-house-id");
+    const currentValue = select.value;
+    select.innerHTML = '<option value="">请选择房源</option>';
+    records.forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item.id;
+      option.textContent = `${item.id} - ${item.title || "未命名房源"}`;
+      select.appendChild(option);
+    });
+    if (currentValue && records.some((item) => String(item.id) === String(currentValue))) {
+      select.value = String(currentValue);
+    }
+  }
+
+  async function loadHouseOptionsForImageBind() {
+    const result = await fetchJsonCached("houses:options", baseUrl + "/house/list?pageNum=1&pageSize=200", 15000);
+    if (result.code !== 200) {
+      alert(result.message || "加载房源下拉失败");
+      return;
+    }
+    const records = (result.data && result.data.records) || [];
+    const select = document.getElementById("image-house-id");
+    const currentValue = select.value;
+    select.innerHTML = '<option value="">请选择房源</option>';
+    records.forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item.id;
+      option.textContent = `${item.id} - ${item.title || "未命名房源"}`;
+      select.appendChild(option);
+    });
+    if (currentValue && records.some((item) => String(item.id) === String(currentValue))) {
+      select.value = String(currentValue);
+    }
+  }
+
+  async function bindHouseLabel() {
+    const houseId = document.getElementById("house-label-house-id").value;
+    const labelId = document.getElementById("house-label-select").value;
+    if (!houseId || !labelId) return alert("请选择房源和标签");
+    const res = await fetch(baseUrl + "/house-label/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ houseId: Number(houseId), labelId: Number(labelId) })
+    });
+    const result = await res.json();
+    if (result.code === 200) {
+      loadHouseLabelRelations();
+    } else {
+      alert(result.message || "绑定失败");
+    }
+  }
+
+  async function loadHouseLabelRelations() {
+    const houseId = document.getElementById("house-label-house-id").value;
+    const url = houseId ? (baseUrl + "/house-label/list?houseId=" + Number(houseId)) : (baseUrl + "/house-label/list");
+    const res = await fetch(url);
+    const result = await res.json();
+    const list = result.data || [];
+    const tbody = document.getElementById("house-label-relation-body");
+    tbody.innerHTML = "";
+    list.forEach((item) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${item.id}</td>
+        <td>${item.roomId}</td>
+        <td>${item.labelId}</td>
+        <td><button class="mini-btn" type="button" onclick="deleteHouseLabelRelation(${item.id})">删除</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function deleteHouseLabelRelation(id) {
+    await fetch(baseUrl + "/house-label/" + id, { method: "DELETE" });
+    loadHouseLabelRelations();
+  }
+
+  async function addImage() {
+    const houseId = document.getElementById("image-house-id").value.trim();
+    const imageUrl = document.getElementById("image-url").value.trim();
+    const sortNum = document.getElementById("image-sort").value.trim();
+    const isCover = document.getElementById("image-cover").value.trim();
+    if (!houseId || !imageUrl) return alert("请填写房源ID和图片URL");
+    const res = await fetch(baseUrl + "/house-image/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        houseId: Number(houseId),
+        imageUrl,
+        sortNum: sortNum ? Number(sortNum) : 0,
+        isCover: isCover ? Number(isCover) : 0
+      })
+    });
+    const result = await res.json();
+    if (result.code === 200) loadImages();
+  }
+
+  async function uploadImageFile() {
+    const fileInput = document.getElementById("image-file");
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return alert("请选择图片文件");
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(baseUrl + "/upload/image", {
+      method: "POST",
+      body: formData
+    });
+    const result = await res.json();
+    if (result.code === 200 && result.data) {
+      document.getElementById("image-url").value = result.data;
+      const houseId = document.getElementById("image-house-id").value.trim();
+      if (houseId) {
+        await addImage();
+        alert("上传并新增成功");
+      } else {
+        alert("上传成功，请填写房源ID后点新增图片");
+      }
+    } else {
+      alert(result.message || "上传失败");
+    }
+  }
+
+  async function loadImages() {
+    const res = await fetch(baseUrl + "/house-image/list");
+    const result = await res.json();
+    const list = result.data || [];
+    const tbody = document.getElementById("image-table-body");
+    tbody.innerHTML = "";
+    list.forEach((item) => {
+      const tr = document.createElement("tr");
+      const safeImageUrl = String(item.imageUrl ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+      tr.innerHTML = `
+        <td>${item.id}</td>
+        <td>${item.houseId}</td>
+        <td>${item.imageUrl}</td>
+        <td>${item.sortNum ?? 0}</td>
+        <td>${item.isCover ?? 0}</td>
+        <td>
+          <button class="mini-btn" type="button" onclick="editImage(${item.id}, ${item.houseId}, '${safeImageUrl}', ${item.sortNum ?? 0}, ${item.isCover ?? 0})">编辑</button>
+          <button class="mini-btn" type="button" onclick="deleteImage(${item.id})">删除</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function deleteImage(id) {
+    await fetch(baseUrl + "/house-image/" + id, { method: "DELETE" });
+    loadImages();
+  }
+
+  async function editImage(id, houseId, imageUrl, sortNum, isCover) {
+    const newHouseId = prompt("请输入房源ID", String(houseId || ""));
+    if (newHouseId === null) return;
+    const houseIdValue = Number(String(newHouseId).trim());
+    if (!Number.isFinite(houseIdValue) || houseIdValue <= 0) return alert("房源ID不正确");
+
+    const newImageUrl = prompt("请输入图片URL", imageUrl || "");
+    if (newImageUrl === null) return;
+    const imageUrlValue = newImageUrl.trim();
+    if (!imageUrlValue) return alert("图片URL不能为空");
+
+    const newSortNum = prompt("请输入排序", String(sortNum ?? 0));
+    if (newSortNum === null) return;
+    const sortNumValue = Number(String(newSortNum).trim());
+    if (!Number.isFinite(sortNumValue)) return alert("排序格式不正确");
+
+    const newIsCover = prompt("请输入封面标识（0或1）", String(isCover ?? 0));
+    if (newIsCover === null) return;
+    const isCoverValue = Number(String(newIsCover).trim());
+    if (!(isCoverValue === 0 || isCoverValue === 1)) return alert("封面标识只能是0或1");
+
+    const res = await fetch(baseUrl + "/house-image/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: Number(id),
+        houseId: houseIdValue,
+        imageUrl: imageUrlValue,
+        sortNum: sortNumValue,
+        isCover: isCoverValue
+      })
+    });
+    const result = await res.json();
+    if (result.code === 200) {
+      loadImages();
+    } else {
+      alert(result.message || "编辑图片失败");
+    }
+  }
+
+  async function loadUsers() {
+    try {
+      const res = await fetch(baseUrl + "/user/list");
+      const result = await res.json();
+      if (result.code !== 200) {
+        alert(result.message || "加载用户列表失败");
+        return;
+      }
+      const list = result.data || [];
+      const tbody = document.getElementById("user-table-body");
+      tbody.innerHTML = "";
+      list.forEach((item) => {
+        const tr = document.createElement("tr");
+        const safeNickname = String(item.nickname ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+        tr.innerHTML = `
+          <td>${item.id ?? ""}</td>
+          <td>${item.username ?? ""}</td>
+          <td>${item.nickname ?? ""}</td>
+          <td>${item.isAdmin === 1 ? "是" : "否"}</td>
+          <td>${item.createTime ?? ""}</td>
+          <td>
+            <button class="mini-btn" type="button" onclick="editUser(${item.id}, '${safeNickname}', '${item.isAdmin ?? 0}')">编辑</button>
+            <button class="mini-btn" type="button" onclick="deleteUser(${item.id})">删除</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (e) {
+      alert("加载用户列表失败：无法连接后端接口");
+    }
+  }
+
+  async function deleteUser(id) {
+    await fetch(baseUrl + "/user/" + id, { method: "DELETE" });
+    loadUsers();
+  }
+
+  async function editUser(id, nickname, isAdmin) {
+    const newNickname = prompt("请输入新昵称", nickname || "");
+    if (newNickname === null) return;
+    const nicknameValue = newNickname.trim();
+    if (!nicknameValue) return alert("昵称不能为空");
+
+    const newIsAdmin = prompt("请输入管理员标识（0=普通用户，1=管理员）", String(isAdmin ?? 0));
+    if (newIsAdmin === null) return;
+    const isAdminValue = Number(String(newIsAdmin).trim());
+    if (!(isAdminValue === 0 || isAdminValue === 1)) {
+      return alert("管理员标识只能是0或1");
+    }
+
+    const res = await fetch(baseUrl + "/user/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: Number(id),
+        nickname: nicknameValue,
+        isAdmin: isAdminValue
+      })
+    });
+    const result = await res.json();
+    if (result.code === 200) {
+      alert("编辑成功");
+      loadUsers();
+    } else {
+      alert(result.message || "编辑失败");
+    }
+  }
+
+  function formatAuditStatus(status) {
+    if (status === 0) return "待审";
+    if (status === 1) return "通过";
+    if (status === 2) return "驳回";
+    return status ?? "";
+  }
+
+  async function loadHouseOptionsForAudit() {
+    const result = await fetchJsonCached("houses:options", baseUrl + "/house/list?pageNum=1&pageSize=200", 15000);
+    if (result.code !== 200) {
+      alert(result.message || "加载房源下拉失败");
+      return;
+    }
+    const records = (result.data && result.data.records) || [];
+    const select = document.getElementById("audit-house-select");
+    const currentValue = select.value;
+    select.innerHTML = '<option value="">请选择房源</option>';
+    records.forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item.id;
+      option.textContent = `${item.id} - ${item.title || "未命名房源"}`;
+      select.appendChild(option);
+    });
+    if (currentValue && records.some((item) => String(item.id) === String(currentValue))) {
+      select.value = String(currentValue);
+    }
+  }
+
+  async function addAuditLog() {
+    const houseId = document.getElementById("audit-house-select").value;
+    const fromStatus = document.getElementById("audit-from-status").value;
+    const toStatus = document.getElementById("audit-to-status").value;
+    const operatorId = document.getElementById("audit-operator-id").value.trim();
+    const remark = document.getElementById("audit-remark").value.trim();
+    if (!houseId || toStatus === "") return alert("请选择房源和变更后状态");
+    const res = await fetch(baseUrl + "/audit-log/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        houseId: Number(houseId),
+        fromStatus: fromStatus === "" ? null : Number(fromStatus),
+        toStatus: Number(toStatus),
+        operatorId: operatorId ? Number(operatorId) : null,
+        remark
+      })
+    });
+    const result = await res.json();
+    if (result.code === 200) {
+      alert("新增审核记录成功，已同步房源审核状态");
+      loadAuditLogs();
+    } else {
+      alert(result.message || "新增审核记录失败");
+    }
+  }
+
+  async function loadAuditLogs() {
+    const houseId = document.getElementById("audit-house-select").value;
+    const url = houseId ? (baseUrl + "/audit-log/list?houseId=" + Number(houseId)) : (baseUrl + "/audit-log/list");
+    const res = await fetch(url);
+    const result = await res.json();
+    if (result.code !== 200) {
+      alert(result.message || "加载审核记录失败");
+      return;
+    }
+    const list = result.data || [];
+    const tbody = document.getElementById("audit-table-body");
+    tbody.innerHTML = "";
+    list.forEach((item) => {
+      const tr = document.createElement("tr");
+      const safeRemark = String(item.remark ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+      tr.innerHTML = `
+        <td>${item.id ?? ""}</td>
+        <td>${item.houseId ?? ""}</td>
+        <td>${formatAuditStatus(item.fromStatus)}</td>
+        <td>${formatAuditStatus(item.toStatus)}</td>
+        <td>${item.operatorId ?? ""}</td>
+        <td>${item.remark ?? ""}</td>
+        <td>${item.createTime ?? ""}</td>
+        <td>
+          <button class="mini-btn" type="button" onclick="editAuditLog(${item.id}, ${item.houseId}, ${item.fromStatus == null ? 'null' : item.fromStatus}, ${item.toStatus == null ? 'null' : item.toStatus}, ${item.operatorId == null ? 'null' : item.operatorId}, '${safeRemark}')">编辑</button>
+          <button class="mini-btn" type="button" onclick="deleteAuditLog(${item.id})">删除</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function editAuditLog(id, houseId, fromStatus, toStatus, operatorId, remark) {
+    const newHouseId = prompt("请输入房源ID", String(houseId || ""));
+    if (newHouseId === null) return;
+    const houseIdValue = Number(String(newHouseId).trim());
+    if (!Number.isFinite(houseIdValue) || houseIdValue <= 0) return alert("房源ID不正确");
+
+    const newFromStatus = prompt("请输入变更前状态（可空，0待审/1通过/2驳回）", fromStatus == null ? "" : String(fromStatus));
+    if (newFromStatus === null) return;
+    const fromStatusText = String(newFromStatus).trim();
+    const fromStatusValue = fromStatusText === "" ? null : Number(fromStatusText);
+    if (fromStatusValue != null && !(fromStatusValue === 0 || fromStatusValue === 1 || fromStatusValue === 2)) {
+      return alert("变更前状态只能是0/1/2");
+    }
+
+    const newToStatus = prompt("请输入变更后状态（0待审/1通过/2驳回）", toStatus == null ? "" : String(toStatus));
+    if (newToStatus === null) return;
+    const toStatusValue = Number(String(newToStatus).trim());
+    if (!(toStatusValue === 0 || toStatusValue === 1 || toStatusValue === 2)) {
+      return alert("变更后状态只能是0/1/2");
+    }
+
+    const newOperatorId = prompt("请输入操作人ID（可空）", operatorId == null ? "" : String(operatorId));
+    if (newOperatorId === null) return;
+    const operatorText = String(newOperatorId).trim();
+    const operatorIdValue = operatorText === "" ? null : Number(operatorText);
+    if (operatorIdValue != null && (!Number.isFinite(operatorIdValue) || operatorIdValue <= 0)) {
+      return alert("操作人ID不正确");
+    }
+
+    const newRemark = prompt("请输入备注", remark || "");
+    if (newRemark === null) return;
+
+    const res = await fetch(baseUrl + "/audit-log/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: Number(id),
+        houseId: houseIdValue,
+        fromStatus: fromStatusValue,
+        toStatus: toStatusValue,
+        operatorId: operatorIdValue,
+        remark: String(newRemark).trim()
+      })
+    });
+    const result = await res.json();
+    if (result.code === 200) {
+      alert("编辑审核记录成功，已同步房源审核状态");
+      loadAuditLogs();
+    } else {
+      alert(result.message || "编辑审核记录失败");
+    }
+  }
+
+  async function deleteAuditLog(id) {
+    await fetch(baseUrl + "/audit-log/" + id, { method: "DELETE" });
+    loadAuditLogs();
+  }
+
+  async function loadHouses() {
+    try {
+      const res = await fetch(baseUrl + "/house/list?pageNum=1&pageSize=20");
+      const result = await res.json();
+      if (result.code !== 200) {
+        alert(result.message || "加载房源列表失败（请检查后端日志与数据库 house 表是否含 city_id、district_id）");
+        return;
+      }
+      const tbody = document.getElementById("house-table-body");
+      tbody.innerHTML = "";
+      const records = (result.data && result.data.records) || [];
+      records.forEach((item) => {
+        const tr = document.createElement("tr");
+        const safeTitle = String(item.title ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+        tr.innerHTML = `
+          <td>${item.id ?? ""}</td>
+          <td>${item.title ?? ""}</td>
+          <td>${item.city ?? "-"}</td>
+          <td>${item.district ?? "-"}</td>
+          <td>${item.rentPrice ?? ""}</td>
+          <td>已发布</td>
+          <td>
+            <div class="row-actions">
+              <button class="mini-btn" type="button" onclick="editHouse(${item.id})">编辑</button>
+              <button class="mini-btn" type="button" onclick="deleteHouse(${item.id})">删除</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (e) {
+      alert("加载房源列表失败：无法连接后端接口");
+    }
+  }
+
+  async function deleteHouse(id) {
+    if (!confirm("确定删除该房源吗？")) return;
+    const res = await fetch(baseUrl + "/house/" + id, { method: "DELETE" });
+    const result = await res.json();
+    if (result.code === 200) {
+      invalidateCache("houses:");
+      loadHouses();
+    } else {
+      alert(result.message || "删除失败");
+    }
+  }
+
+  async function editHouse(id) {
+    const res = await fetch(baseUrl + "/house/" + id);
+    const result = await res.json();
+    if (result.code !== 200) {
+      alert(result.message || "获取房源详情失败");
+      return;
+    }
+    const house = result.data.house;
+    document.getElementById("edit-house-id").value = house.id;
+    document.getElementById("edit-title").value = house.title || "";
+    document.getElementById("edit-rentPrice").value = house.rentPrice || "";
+    document.getElementById("edit-description").value = house.description || "";
+    document.getElementById("edit-longitude").value = house.longitude || "";
+    document.getElementById("edit-latitude").value = house.latitude || "";
+    const checkedLabelIds = await loadCheckedLabelIdsForHouse(house.id);
+    await loadEditHouseLabelOptions(checkedLabelIds);
+    
+    document.getElementById("edit-house-modal").style.display = "flex";
+  }
+
+  function closeEditHouseModal() {
+    document.getElementById("edit-house-modal").style.display = "none";
+  }
+
+  async function submitEditHouse() {
+    const id = document.getElementById("edit-house-id").value;
+    const titleValue = document.getElementById("edit-title").value.trim();
+    const rentPriceValue = Number(document.getElementById("edit-rentPrice").value.trim());
+    const descriptionValue = document.getElementById("edit-description").value.trim();
+    const longitudeValue = document.getElementById("edit-longitude").value.trim();
+    const latitudeValue = document.getElementById("edit-latitude").value.trim();
+    const labelIds = getCheckedLabelIds("edit-label-checkboxes");
+
+    if (!titleValue) return alert("标题不能为空");
+    if (!Number.isFinite(rentPriceValue) || rentPriceValue <= 0) return alert("租金格式不正确");
+
+    const res = await fetch(baseUrl + "/house/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: Number(id),
+        title: titleValue,
+        rentPrice: rentPriceValue,
+        description: descriptionValue,
+        longitude: longitudeValue ? Number(longitudeValue) : null,
+        latitude: latitudeValue ? Number(latitudeValue) : null,
+        labelIds
+      })
+    });
+    const result = await res.json();
+    if (result.code === 200) {
+      try {
+        await syncHouseLabelRelations(Number(id), labelIds);
+      } catch (error) {
+        alert(error.message || "房源已保存，但标签保存失败");
+        return;
+      }
+      alert("编辑成功");
+      invalidateCache("houses:");
+      closeEditHouseModal();
+      loadHouses();
+    } else {
+      alert(result.message || "编辑失败");
+    }
+  }
+
+  showPanel("dashboard");
+  window.addEventListener("beforeunload", stopDashboardMonitor);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      stopDashboardMonitor();
+      return;
+    }
+    if (panelDashboard.style.display !== "none") {
+      startDashboardMonitor();
+    }
+  });
+
+  const layout = document.querySelector(".layout");
+  const toggleSidebarBtn = document.getElementById("btn-toggle-sidebar");
+  if (toggleSidebarBtn && layout) {
+    toggleSidebarBtn.addEventListener("click", () => {
+      layout.classList.toggle("sidebar-collapsed");
+    });
+  }
+</script>
+
+</body>
+</html>

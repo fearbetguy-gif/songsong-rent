@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <title>房源详情</title>
+  </head>
+  <body>
+    <h1 id="title">加载中...</h1>
+    <p id="price"></p>
+    <p id="address"></p>
+
+    <h3>图片列表</h3>
+    <ul id="images"></ul>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+
+      async function loadDetail() {
+        if (!id) {
+          document.getElementById("title").textContent = "缺少房源ID";
+          return;
+        }
+        try {
+          const res = await fetch(`http://localhost:8080/house/${id}`);
+          const result = await res.json();
+          if (result.code !== 200 || !result.data || !result.data.house) {
+            throw new Error(result.message || "加载失败");
+          }
+          const detail = result.data;
+          document.getElementById("title").textContent = detail.house.title || "";
+          document.getElementById("price").textContent = `价格：${detail.house.rentPrice || "-"} 元/月`;
+          document.getElementById("address").textContent = `地址：${detail.house.address || "-"}`;
+
+          const imagesEl = document.getElementById("images");
+          imagesEl.innerHTML = "";
+          (detail.images || []).forEach((img) => {
+            const li = document.createElement("li");
+            li.textContent = img.imageUrl || "";
+            imagesEl.appendChild(li);
+          });
+        } catch (e) {
+          document.getElementById("title").textContent = e.message || "加载失败";
+        }
+      }
+
+      loadDetail();
+    </script>
+  </body>
+</html>
